@@ -1,15 +1,36 @@
-- name: Add Docker repository and update apt cache
-  apt_repository:
-    repo: deb https://apt.dockerproject.org/repo ubuntu-trusty main
+## install docker using the repository
+- name: Install docker packages
+  apt: 
     update_cache: yes
+    name: "{{ item }}"
     state: present
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+    - gnupg-agent
   tags: [docker]
+
+- name: Add Dockers official GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Setup docker stable repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+    state: present
 
 - name: Docker is present
   apt:
-    name: docker-engine
+    name: "{{ item }}"
     state: latest
     force: yes
+  with_items:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
   tags: [docker]
 
 - name: Python-pip is present
@@ -22,7 +43,7 @@
 
 - name: Docker Compose is present
   get_url:
-    url: https://github.com/docker/compose/releases/download/1.11.1/docker-compose-Linux-x86_64
+    url: https://github.com/docker/compose/releases/download/1.25.4/docker-compose-Linux-x86_64
     dest: /usr/local/bin/docker-compose
     timeout: 60
   tags: [docker]
